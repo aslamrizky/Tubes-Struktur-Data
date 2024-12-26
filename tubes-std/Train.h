@@ -3,19 +3,33 @@
 
 #include <iostream>
 #include <vector>
-#include <queue>
 #include <map>
+#include <string>
+#include <queue>
+#include <algorithm>
+#include <limits>
 
 using namespace std;
 
-class TrainGraph {
-public:
-    void addStation(string station);
-    void addEdge(string from, string to, int distance);
-    void displayRoute(string start, string end);
-
-private:
-    map<string, vector<pair<string, int>>> graph;
+// Struktur untuk Edge (koneksi antar stasiun)
+struct Edge {
+    string tujuan;
+    int jarak;
 };
 
-#endif // TRAIN_H
+// Struktur untuk Vertex (stasiun)
+struct Vertex {
+    string nama;
+    vector<Edge> koneksi;
+};
+
+void tambahVertex(map<string, Vertex>& vertices, const string& nama);
+void tambahEdge(map<string, Vertex>& vertices, const string& asal, const string& tujuan, int jarak);
+void tampilkanSemuaRute(map<string, Vertex>& vertices);
+void cariRuteTercepat(const map<string, Vertex>& vertices, const string& asal, const string& tujuan);
+void tambahStasiun(map<string, Vertex>& vertices, const string& nama, const vector<pair<string, int>>& koneksi);
+void hapusStasiun(map<string, Vertex>& vertices, const string& nama);
+void cariSemuaRute(const map<string, Vertex>& vertices, const string& asal, const string& tujuan, vector<string>& ruteSaatIni, vector<vector<string>>& semuaRute, map<string, bool>& visited);
+void tampilkanSemuaRuteAlternatif(const map<string, Vertex>& vertices, const string& asal, const string& tujuan);
+
+#endif // GRAPH_H
