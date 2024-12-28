@@ -27,12 +27,12 @@ int main() {
     tambahStasiun(G, "Depok");
     tambahStasiun(G, "Bogor");
 
-    tambahEdgeStasiun(G, "Jakarta", "Tanjung Priok", 2);
-    tambahEdgeStasiun(G, "Jakarta", "Manggarai", 7);
-    tambahEdgeStasiun(G, "Manggarai", "Bekasi", 6);
-    tambahEdgeStasiun(G, "Manggarai", "Depok", 11);
-    tambahEdgeStasiun(G, "Depok", "Bogor", 3);
-    tambahEdgeStasiun(G, "Manggarai", "Bogor", 14);
+    tambahEdgeStasiun(G, "Jakarta", "Tanjung Priok", 10);
+    tambahEdgeStasiun(G, "Jakarta", "Manggarai", 35);
+    tambahEdgeStasiun(G, "Manggarai", "Bekasi", 30);
+    tambahEdgeStasiun(G, "Manggarai", "Depok", 55);
+    tambahEdgeStasiun(G, "Depok", "Bogor", 15);
+    tambahEdgeStasiun(G, "Manggarai", "Bogor", 70);
 
     do {
         cout << "\n---------- Menu ----------" << endl;
