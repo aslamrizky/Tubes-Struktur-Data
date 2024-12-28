@@ -35,7 +35,7 @@ void tampilkanRute(graph &G) {
         cout << "Rute " << namaStasiun(s) << " : " << endl;
         adrEdgeStasiun e = edgeStasiunPertama(s);
         while (e != NULL) {
-            cout << namaStasiun(s) << " -> " << destNamaStasiun(e) << " ( melewati " << jarak(e) << " stasiun lainnya )" << endl;
+            cout << namaStasiun(s) << " -> " << destNamaStasiun(e) << " ( dengan jarak: " << jarak(e) << "km. )" << endl;
             e = edgeStasiunSetelah(e);
         }
         cout << endl;
@@ -104,7 +104,7 @@ bool cariJalurDFS(graph &G, string sumber, string tujuan, vector<string> &path, 
                 cout << " -> ";
             }
         }
-        cout << " (melewati " << totalJarak << " stasiun lainnya)" << endl;
+        cout << " (dengan jarak: " << totalJarak << "km. )" << endl;
         path.pop_back();
         return true;
     }
