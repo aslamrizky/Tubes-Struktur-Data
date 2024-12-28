@@ -1,169 +1,191 @@
 #include "Train.h"
+#include <string>
+#include <vector>
+#include <algorithm>
 
-void tambahVertex(map<string, Vertex>& vertices, const string& nama) {
-    if (vertices.find(nama) == vertices.end()) {
-        vertices[nama] = {nama, {}};
-    }
+void tambahStasiunBaru(string stasiunBaru, adrStasiun &s) {
+    s = new stasiun;
+    namaStasiun(s) = stasiunBaru;
+    stasiunSetelah(s) = NULL;
+    edgeStasiunPertama(s) = NULL;
 }
 
-void tambahEdge(map<string, Vertex>& vertices, const string& asal, const string& tujuan, int jarak) {
-    tambahVertex(vertices, asal);
-    tambahVertex(vertices, tujuan);
-
-    vertices[asal].koneksi.push_back({tujuan, jarak});
-    vertices[tujuan].koneksi.push_back({asal, jarak}); // Graf tidak berarah
+void initStasiun(graph &G) {
+    stasiunPertama(G) = NULL;
 }
 
-void tampilkanSemuaRute(map<string, Vertex>& vertices) {
-    for (auto it = vertices.begin(); it != vertices.end(); ++it) {
-        string nama = it->first;
-        Vertex& vertex = it->second;
-
-        cout << nama << " -> ";
-        bool first = true;
-        for (auto edgeIt = vertex.koneksi.begin(); edgeIt != vertex.koneksi.end(); ++edgeIt) {
-            if (!first) cout << ", ";
-            cout << "(" << edgeIt->tujuan << ", " << edgeIt->jarak << ")";
-            first = false;
+void tambahStasiun(graph &G, string stasiunBaru) {
+    adrStasiun s;
+    tambahStasiunBaru(stasiunBaru, s);
+    if (stasiunPertama(G) == NULL) {
+        stasiunPertama(G) = s;
+    } else {
+        adrStasiun s2 = stasiunPertama(G);
+        while (stasiunSetelah(s2) != NULL) {
+            s2 = stasiunSetelah(s2);
         }
-        cout << "\n";
+        stasiunSetelah(s2) = s;
     }
 }
 
-void cariRuteTercepat(const map<string, Vertex>& vertices, const string& asal, const string& tujuan) {
-    map<string, int> jarak;
-    map<string, string> sebelumnya;
-    priority_queue<pair<int, string>, vector<pair<int, string>>, greater<>> antrian;
-
-    for (map<string, Vertex>::const_iterator it = vertices.begin(); it != vertices.end(); ++it) {
-        jarak[it->first] = numeric_limits<int>::max();
-    }
-    jarak[asal] = 0;
-    antrian.push(make_pair(0, asal));
-
-    while (!antrian.empty()) {
-        pair<int, string> top = antrian.top();
-        int jarakSaatIni = top.first;
-        string sekarang = top.second;
-        antrian.pop();
-
-        if (jarakSaatIni > jarak[sekarang]) continue;
-
-        for (int i = 0; i < vertices.at(sekarang).koneksi.size(); ++i) {
-            const Edge& edge = vertices.at(sekarang).koneksi[i];
-            int jarakBaru = jarakSaatIni + edge.jarak;
-            if (jarakBaru < jarak[edge.tujuan]) {
-                jarak[edge.tujuan] = jarakBaru;
-                sebelumnya[edge.tujuan] = sekarang;
-                antrian.push(make_pair(jarakBaru, edge.tujuan));
-            }
+void tampilkanRute(graph &G) {
+    cout << "Rute Stasiun" << endl;
+    adrStasiun s = stasiunPertama(G);
+    while (s != NULL) {
+        cout << "Rute " << namaStasiun(s) << " : " << endl;
+        adrEdgeStasiun e = edgeStasiunPertama(s);
+        while (e != NULL) {
+            cout << namaStasiun(s) << " -> " << destNamaStasiun(e) << " ( melewati " << jarak(e) << " stasiun lainnya )" << endl;
+            e = edgeStasiunSetelah(e);
         }
+        cout << endl;
+        s = stasiunSetelah(s);
     }
+}
 
-    if (jarak[tujuan] == numeric_limits<int>::max()) {
-        cout << "Tidak ada rute dari " << asal << " ke " << tujuan << "\n";
+adrStasiun cariStasiun(graph &G, string stasiunDiCari) {
+    adrStasiun s = stasiunPertama(G);
+    while (s != NULL) {
+        if (namaStasiun(s) == stasiunDiCari) {
+            return s;
+        }
+        s = stasiunSetelah(s);
+    }
+    return NULL;
+}
+
+void tambahEdgeStasiun(graph &G, string stasiunSumber, string destNamaStasiun, int jarak) {
+    adrStasiun sumber = cariStasiun(G, stasiunSumber);
+    adrStasiun tujuan = cariStasiun(G, destNamaStasiun);
+
+    if (sumber == NULL || tujuan == NULL) {
+        cout << "Stasiun tidak ditemukan!" << endl;
         return;
     }
 
-    cout << "Rute tercepat dari " << asal << " ke " << tujuan << " dengan jarak " << jarak[tujuan] << ":\n";
-    vector<string> rute;
-    for (string stasiun = tujuan; !stasiun.empty(); stasiun = sebelumnya[stasiun]) {
-        rute.push_back(stasiun);
-    }
-    reverse(rute.begin(), rute.end());
+    adrEdgeStasiun edge = new edgeStasiun;
+    destNamaStasiun(edge) = destNamaStasiun;
+    jarak(edge) = jarak;
+    edgeStasiunSetelah(edge) = edgeStasiunPertama(sumber);
+    edgeStasiunPertama(sumber) = edge;
 
-    for (int i = 0; i < rute.size(); ++i) {
-        cout << rute[i];
-        if (i != rute.size() - 1) cout << " -> ";
-    }
-    cout << "\n";
+    adrEdgeStasiun edgeBalik = new edgeStasiun;
+    destNamaStasiun(edgeBalik) = stasiunSumber;
+    jarak(edgeBalik) = jarak;
+    edgeStasiunSetelah(edgeBalik) = edgeStasiunPertama(tujuan);
+    edgeStasiunPertama(tujuan) = edgeBalik;
+
+    cout << "Stasiun " << destNamaStasiun(edge) << " berhasil ditambah setelah stasiun " << stasiunSumber << endl;
 }
 
-void tambahStasiun(map<string, Vertex>& vertices, const string& nama, const vector<pair<string, int>>& koneksi) {
-    tambahVertex(vertices, nama);
-    for (int i = 0; i < koneksi.size(); ++i) {
-        const string& tujuan = koneksi[i].first;
-        int jarak = koneksi[i].second;
-        tambahEdge(vertices, nama, tujuan, jarak);
+bool cariJalurDFS(graph &G, string sumber, string tujuan, vector<string> &path, int &totalJarak, vector<string> &bestPath, int &minNodes) {
+    adrStasiun stasiunSumber = cariStasiun(G, sumber);
+    adrStasiun stasiunTujuan = cariStasiun(G, tujuan);
+
+    if (stasiunSumber == NULL || stasiunTujuan == NULL) {
+        return false;
     }
-    cout << "Stasiun " << nama << " berhasil ditambahkan.\n";
+
+    path.push_back(sumber);
+
+    if (sumber == tujuan) {
+
+        int nodesCount = path.size();
+
+        if (nodesCount < minNodes) {
+            minNodes = nodesCount;
+            bestPath = path;
+        }
+
+        cout << "Jalur: ";
+        for (size_t i = 0; i < path.size(); ++i) {
+            cout << path[i];
+            if (i < path.size() - 1) {
+                cout << " -> ";
+            }
+        }
+        cout << " (melewati " << totalJarak << " stasiun lainnya)" << endl;
+        path.pop_back();
+        return true;
+    }
+
+    adrEdgeStasiun e = edgeStasiunPertama(stasiunSumber);
+    bool found = false;
+    while (e != NULL) {
+        if (find(path.begin(), path.end(), destNamaStasiun(e)) == path.end()) {
+            totalJarak += jarak(e);
+            if (cariJalurDFS(G, destNamaStasiun(e), tujuan, path, totalJarak, bestPath, minNodes)) {
+                found = true;
+            }
+            totalJarak -= jarak(e);
+        }
+        e = edgeStasiunSetelah(e);
+    }
+
+    path.pop_back();
+    return found;
 }
 
-void hapusStasiun(map<string, Vertex>& vertices, const string& nama) {
-    if (vertices.find(nama) == vertices.end()) {
-        cout << "Stasiun " << nama << " tidak ditemukan.\n";
+void jalurTercepat(graph &G, vector<string> &bestPath, int &minNodes) {
+    cout << "\nJalur tercepat: ";
+    for (size_t i = 0; i < bestPath.size(); ++i) {
+        cout << bestPath[i];
+        if (i < bestPath.size() - 1) {
+            cout << " -> ";
+        }
+    }
+    cout << endl;
+}
+
+
+void hapusStasiun(graph &G, string stasiunDiHapus) {
+    adrStasiun s = stasiunPertama(G);
+    adrStasiun prevStasiun = NULL;
+
+    while (s != NULL && namaStasiun(s) != stasiunDiHapus) {
+        prevStasiun = s;
+        s = stasiunSetelah(s);
+    }
+
+    if (s == NULL) {
+        cout << "Stasiun tidak ditemukan!" << endl;
         return;
     }
 
-    vertices.erase(nama);
-
-    for (map<string, Vertex>::iterator it = vertices.begin(); it != vertices.end(); ++it) {
-        Vertex& vertex = it->second;
-        vertex.koneksi.erase(
-            remove_if(vertex.koneksi.begin(), vertex.koneksi.end(),
-                      [&nama](const Edge& edge) { return edge.tujuan == nama; }),
-            vertex.koneksi.end());
+    adrEdgeStasiun e = edgeStasiunPertama(s);
+    while (e != NULL) {
+        adrEdgeStasiun temp = e;
+        e = edgeStasiunSetelah(e);
+        delete temp;
     }
 
-    cout << "Stasiun " << nama << " berhasil dihapus.\n";
-}
-
-void cariSemuaRute(const map<string, Vertex>& vertices, const string& asal, const string& tujuan, vector<string>& ruteSaatIni, vector<vector<string>>& semuaRute, map<string, bool>& visited) {
-    visited[asal] = true;
-    ruteSaatIni.push_back(asal);
-
-    if (asal == tujuan) {
-        semuaRute.push_back(ruteSaatIni);
-    } else {
-        for (int i = 0; i < vertices.at(asal).koneksi.size(); ++i) {
-            const Edge& edge = vertices.at(asal).koneksi[i];
-            if (!visited[edge.tujuan]) {
-                cariSemuaRute(vertices, edge.tujuan, tujuan, ruteSaatIni, semuaRute, visited);
-            }
-        }
-    }
-
-    ruteSaatIni.pop_back();
-    visited[asal] = false;
-}
-
-void tampilkanSemuaRuteAlternatif(const map<string, Vertex>& vertices, const string& asal, const string& tujuan) {
-    vector<string> ruteSaatIni;
-    vector<vector<string>> semuaRute;
-    map<string, bool> visited;
-
-    for (map<string, Vertex>::const_iterator it = vertices.begin(); it != vertices.end(); ++it) {
-        visited[it->first] = false;
-    }
-
-    cariSemuaRute(vertices, asal, tujuan, ruteSaatIni, semuaRute, visited);
-
-    if (semuaRute.empty()) {
-        cout << "Tidak ada rute dari " << asal << " ke " << tujuan << "\n";
-    } else {
-        cout << "Semua rute alternatif dari " << asal << " ke " << tujuan << ":\n";
-        for (int i = 0; i < semuaRute.size(); ++i) {
-            const vector<string>& rute = semuaRute[i];
-            int jarakTotal = 0;
-
-            for (int j = 0; j < rute.size(); ++j) {
-                if (j != 0) {
-                    const string& sebelumnya = rute[j - 1];
-                    const string& sekarang = rute[j];
-
-                    // Cari jarak antara dua simpul
-                    for (const Edge& edge : vertices.at(sebelumnya).koneksi) {
-                        if (edge.tujuan == sekarang) {
-                            jarakTotal += edge.jarak;
-                            break;
-                        }
-                    }
+    adrStasiun t = stasiunPertama(G);
+    while (t != NULL) {
+        adrEdgeStasiun prevEdge = NULL;
+        e = edgeStasiunPertama(t);
+        while (e != NULL) {
+            if (destNamaStasiun(e) == stasiunDiHapus) {
+                if (prevEdge == NULL) {
+                    edgeStasiunPertama(t) = edgeStasiunSetelah(e);
+                } else {
+                    edgeStasiunSetelah(prevEdge) = edgeStasiunSetelah(e);
                 }
-
-                cout << rute[j];
-                if (j != rute.size() - 1) cout << " -> ";
+                delete e;
+                break;
             }
-            cout << " dengan jarak " << jarakTotal << "\n";
+            prevEdge = e;
+            e = edgeStasiunSetelah(e);
         }
+        t = stasiunSetelah(t);
     }
+
+    if (prevStasiun == NULL) {
+        stasiunPertama(G) = stasiunSetelah(s);
+    } else {
+        stasiunSetelah(prevStasiun) = stasiunSetelah(s);
+    }
+
+    delete s;
+    cout << "Stasiun " << stasiunDiHapus << " dan semua relasinya telah dihapus!" << endl;
 }
+
