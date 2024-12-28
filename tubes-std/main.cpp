@@ -1,68 +1,98 @@
 #include "Train.h"
 
-int main() {
-    map<string, Vertex> kereta;
+#include <iostream>
+#include <string>
+#include <vector>
+#include <algorithm>
 
-    // Tambahkan rute awal dari diagram
-    tambahEdge(kereta, "Tanjung_Priok", "Jakarta", 2);
-    tambahEdge(kereta, "Jakarta", "Manggarai", 7);
-    tambahEdge(kereta, "Manggarai", "Depok", 11);
-    tambahEdge(kereta, "Manggarai", "Bekasi", 6);
-    tambahEdge(kereta, "Manggarai", "Bogor", 14);
-    tambahEdge(kereta, "Depok", "Bogor", 3);
+using namespace std;
+
+int main() {
+    graph G;
+    initStasiun(G);
 
     int pilihan;
+    string stasiunBaru, stasiunSumber, stasiunTujuan, stasiunHapus;
+    int jarak;
+
+    vector<string> path;
+    vector<string> bestPath;
+    int totalJarak;
+    int minNodes;
+
+    tambahStasiun(G, "Jakarta");
+    tambahStasiun(G, "Tanjung Priok");
+    tambahStasiun(G, "Manggarai");
+    tambahStasiun(G, "Bekasi");
+    tambahStasiun(G, "Depok");
+    tambahStasiun(G, "Bogor");
+
+    tambahEdgeStasiun(G, "Jakarta", "Tanjung Priok", 2);
+    tambahEdgeStasiun(G, "Jakarta", "Manggarai", 7);
+    tambahEdgeStasiun(G, "Manggarai", "Bekasi", 6);
+    tambahEdgeStasiun(G, "Manggarai", "Depok", 11);
+    tambahEdgeStasiun(G, "Depok", "Bogor", 3);
+    tambahEdgeStasiun(G, "Manggarai", "Bogor", 14);
+
     do {
-        cout << "\nMenu:\n";
-        cout << "1. Tampilkan Semua Rute\n";
-        cout << "2. Cari Rute Tercepat\n";
-        cout << "3. Tambah Stasiun Baru\n";
-        cout << "4. Hapus Stasiun\n";
-        cout << "5. Tampilkan Semua Rute Alternatif\n";
-        cout << "6. Keluar\n";
-        cout << "Pilih: ";
+        cout << "\n---------- Menu ----------" << endl;
+        cout << "1. Tampilkan Rute Stasiun" << endl;
+        cout << "2. Cari Jalur Tercepat" << endl;
+        cout << "3. Tambah Stasiun dan Rute" << endl;
+        cout << "4. Hapus Stasiun" << endl;
+        cout << "0. Keluar" << endl;
+        cout << "--------------------------" << endl;
+        cout << "Masukkan pilihan: ";
         cin >> pilihan;
+        cin.ignore();
 
-        if (pilihan == 1) {
-            tampilkanSemuaRute(kereta);
-        } else if (pilihan == 2) {
-            string asal, tujuan;
-            cout << "Masukkan stasiun asal: ";
-            cin >> asal;
-            cout << "Masukkan stasiun tujuan: ";
-            cin >> tujuan;
-            cariRuteTercepat(kereta, asal, tujuan);
-        } else if (pilihan == 3) {
-            string nama;
-            int jumlah;
-            cout << "Masukkan nama stasiun baru: ";
-            cin >> nama;
-            cout << "Masukkan jumlah koneksi: ";
-            cin >> jumlah;
+        switch(pilihan) {
+            case 1:
+                tampilkanRute(G);
+                break;
+            case 2:
+                cout << "Masukkan nama stasiun sumber: ";
+                getline(cin, stasiunSumber);
+                cout << "Masukkan nama stasiun tujuan: ";
+                getline(cin, stasiunTujuan);
+                cout << endl;
 
-            vector<pair<string, int>> koneksi;
-            for (int i = 0; i < jumlah; ++i) {
-                string tujuan;
-                int jarak;
-                cout << "Masukkan stasiun tujuan dan jarak: ";
-                cin >> tujuan >> jarak;
-                koneksi.push_back({tujuan, jarak});
-            }
-            tambahStasiun(kereta, nama, koneksi);
-        } else if (pilihan == 4) {
-            string nama;
-            cout << "Masukkan nama stasiun yang ingin dihapus: ";
-            cin >> nama;
-            hapusStasiun(kereta, nama);
-        } else if (pilihan == 5) {
-            string asal, tujuan;
-            cout << "Masukkan stasiun asal: ";
-            cin >> asal;
-            cout << "Masukkan stasiun tujuan: ";
-            cin >> tujuan;
-            tampilkanSemuaRuteAlternatif(kereta, asal, tujuan);
+                totalJarak = 0;
+                bestPath.clear();
+                minNodes = INT_MAX;
+
+                if (cariJalurDFS(G, stasiunSumber, stasiunTujuan, path, totalJarak, bestPath, minNodes)) {
+                    jalurTercepat(G, bestPath, minNodes);
+                } else {
+                cout << "Jalur tidak ditemukan!" << endl;
+                }
+                break;
+            case 3:
+                cout << "Masukkan nama stasiun baru: ";
+                getline(cin, stasiunBaru);
+                tambahStasiun(G, stasiunBaru);
+
+                cout << "Masukkan nama stasiun sumber: ";
+                getline(cin, stasiunSumber);
+                cout << "Masukkan jarak: ";
+                cin >> jarak;
+                cin.ignore();
+
+                tambahEdgeStasiun(G, stasiunSumber, stasiunBaru, jarak);
+                break;
+            case 4:
+                cout << "Pilih stasiun yang ingin dihapus: ";
+                getline(cin, stasiunHapus);
+                hapusStasiun(G, stasiunHapus);
+                break;
+            case 0:
+                cout << "Terima kasih!" << endl;
+                break;
+            default:
+                cout << "Pilihan tidak valid, coba lagi." << endl;
         }
-    } while (pilihan != 6);
+    } while (pilihan != 0);
 
     return 0;
 }
+
